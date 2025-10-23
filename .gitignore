@@ -1,0 +1,54 @@
+# -----------------------------
+# Ambiente virtual
+# -----------------------------
+.venv/
+venv/
+ENV/
+env/
+__pycache__/
+*.py[cod]
+*$py.class
+
+# -----------------------------
+# Configurações do VS Code
+# -----------------------------
+.vscode/
+.history/
+
+# -----------------------------
+# Arquivos de log e temporários
+# -----------------------------
+*.log
+*.tmp
+*.swp
+*.swo
+
+# -----------------------------
+# Arquivos de sistema
+# -----------------------------
+.DS_Store
+Thumbs.db
+
+# -----------------------------
+# Arquivos do Jupyter Notebook
+# -----------------------------
+.ipynb_checkpoints
+
+# -----------------------------
+# Output de pacotes Python
+# -----------------------------
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# -----------------------------
+# Streamlit cache e dados temporários
+# -----------------------------
+.streamlit/
+.cache/
+
+# -----------------------------
+# Arquivos do PyCharm (opcional)
+# -----------------------------
+.idea/
