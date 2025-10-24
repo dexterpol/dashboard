@@ -1,35 +1,55 @@
+from supabase_client import supabase
 import pandas as pd
-import streamlit as st
-from datetime import date
+import numpy as np
 
-def adicionar_nota(obra, observacoes, data_reg=None):
-    """Adiciona uma nova nota ao session_state"""
-    if data_reg is None:
-        data_reg = date.today()
-    
-    novo_registro = {
-        "data": pd.to_datetime(data_reg),
-        "obra": obra,
-        "observacoes": observacoes
-    }
+def listar_notas():
+    """Lista notas com o nome da obra"""
+    res = (
+        supabase.table("notas")
+        .select("id, data, obra_id, titulo, descricao, custo, obras(nome)")
+        .order("data", desc=True)
+        .execute()
+    )
 
-    if "notas_data" not in st.session_state:
-        st.session_state["notas_data"] = pd.DataFrame(columns=["data","obra","observacoes"])
+    data = res.data
+    if not data:
+        return pd.DataFrame(columns=["id", "data", "obra", "titulo", "descricao", "custo"])
 
-    st.session_state["notas_data"] = pd.concat([
-        st.session_state["notas_data"],
-        pd.DataFrame([novo_registro])
-    ], ignore_index=True)
-    st.success("Nota adicionada com sucesso!")
+    df = pd.DataFrame(data)
 
-def deletar_nota(index):
-    """Remove nota pelo índice"""
-    if "notas_data" in st.session_state and not st.session_state["notas_data"].empty:
-        st.session_state["notas_data"] = st.session_state["notas_data"].drop(index).reset_index(drop=True)
-        st.success("Nota removida com sucesso!")
+    # Extrai nome da obra
+    if "obras" in df.columns:
+        df["obra"] = df["obras"].apply(lambda x: x.get("nome") if isinstance(x, dict) else None)
+        df.drop(columns=["obras"], inplace=True)
 
-def atualizar_nota(index, observacoes):
-    """Atualiza a observação de uma nota existente"""
-    if "notas_data" in st.session_state and not st.session_state["notas_data"].empty:
-        st.session_state["notas_data"].at[index, "observacoes"] = observacoes
-        st.success("Nota atualizada com sucesso!")
+    # Converte data
+    if "data" in df.columns:
+        df["data"] = pd.to_datetime(df["data"], errors="coerce")
+
+    return df
+
+
+def inserir_nota(data, obra_id, titulo, descricao, custo):
+    """Insere nova nota"""
+    if hasattr(data, "isoformat"):
+        data = data.isoformat()
+
+    def to_native(val):
+        if isinstance(val, (np.int64, np.int32)):
+            return int(val)
+        elif isinstance(val, (np.float64, np.float32)):
+            return float(val)
+        return val
+
+    obra_id = to_native(obra_id)
+    custo = to_native(custo)
+
+    supabase.table("notas").insert({
+        "data": data,
+        "obra_id": obra_id,
+        "titulo": titulo,
+        "descricao": descricao,
+        "custo": custo
+    }).execute()
+
+    return listar_notas()
